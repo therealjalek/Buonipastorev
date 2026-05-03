@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Buoni Pasto Evolution</title>
+<link rel="manifest" href="manifest.json">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green: #2e7d32;
+    --green-light: #43a047;
+    --green-bg: #1b5e20;
+    --orange: #f57c00;
+    --orange-light: #ffa726;
+    --slate: #455a64;
+    --slate-dark: #37474f;
+    --red: #c62828;
+    --white: #ffffff;
+    --bg: #f0f4f0;
+    --card-bg: #ffffff;
+    --text: #212121;
+    --text-light: #757575;
+    --border: #e0e0e0;
+    --shadow: 0 4px 20px rgba(0,0,0,0.10);
+    --radius: 16px;
+    --radius-sm: 10px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* HEADER */
+  .header {
+    background: linear-gradient(135deg, var(--green-bg) 0%, var(--green) 60%, var(--green-light) 100%);
+    padding: 36px 24px 28px;
+    text-align: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.18);
+  }
+  .header h1 {
+    font-size: 2.2rem;
+    font-weight: 900;
+    color: var(--white);
+    letter-spacing: -0.5px;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+
+  /* NAV TABS */
+  .nav {
+    display: flex;
+    background: var(--white);
+    border-bottom: 2px solid var(--border);
+    position: sticky;
+    top: 96px;
+    z-index: 99;
+  }
+  .nav-btn {
+    flex: 1;
+    padding: 13px 6px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: var(--text-light);
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+  .nav-btn.active {
+    color: var(--green);
+    border-bottom-color: var(--green);
+  }
+
+  /* PAGES */
+  .page { display: none; padding: 20px 16px 100px; }
+  .page.active { display: block; }
+
+  /* CARD */
+  .card {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 22px 18px;
+    margin-bottom: 20px;
+  }
+  .card-title {
+    font-size: 1.2rem;
+    font-weight: 900;
+    color: var(--green);
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1.5px solid var(--border);
+  }
+
+  /* INPUTS */
+  .input-field {
+    width: 100%;
+    padding: 14px 16px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    outline: none;
+    background: #fafafa;
+    color: var(--text);
+    transition: border-color 0.2s;
+    margin-bottom: 12px;
+  }
+  .input-field:focus { border-color: var(--green); background: var(--white); }
+  .input-field::placeholder { color: #bdbdbd; font-weight: 500; }
+
+  /* BUTTONS */
+  .btn {
+    width: 100%;
+    padding: 15px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 800;
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    transition: all 0.15s;
+    margin-bottom: 10px;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn-green { background: var(--green); color: var(--white); }
+  .btn-green:hover { background: var(--green-light); }
+  .btn-gray { background: #9e9e9e; color: var(--white); }
+  .btn-gray:hover { background: #757575; }
+  .btn-orange { background: var(--orange); color: var(--white); }
+  .btn-orange:hover { background: var(--orange-light); }
+
+  /* SUMMARY ROWS */
+  .summary { margin: 16px 0; }
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #f5f5f5;
+    font-size: 1rem;
+    font-weight: 700;
+  }
+  .summary-row:last-child { border-bottom: none; }
+  .summary-row .label { color: var(--text); }
+  .summary-row .value { color: var(--text); font-size: 1.05rem; }
+  .summary-row .value.red { color: var(--red); font-size: 1.15rem; font-weight: 900; }
+  .summary-row .value.green { color: var(--green); font-size: 1.1rem; }
+
+  /* PROGRESS BAR */
+  .progress-wrap {
+    margin: 14px 0 6px;
+  }
+  .progress-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-light);
+    margin-bottom: 6px;
+  }
+  .progress-bar-bg {
+    width: 100%;
+    height: 10px;
+    background: #e8f5e9;
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--green), var(--green-light));
+    border-radius: 99px;
+    transition: width 0.4s cubic-bezier(.4,0,.2,1);
+  }
+
+  /* CALCULATOR */
+  .calc-display {
+    background: #eceff1;
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    min-height: 58px;
+    text-align: right;
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--text);
+    margin-bottom: 14px;
+    letter-spacing: 1px;
+    word-break: break-all;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+  }
+  .calc-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .calc-btn {
+    padding: 0;
+    height: 64px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 800;
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.12s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .calc-btn:active { transform: scale(0.93); filter: brightness(0.9); }
+  .calc-btn.num { background: var(--slate); color: var(--white); }
+  .calc-btn.op { background: var(--orange); color: var(--white); }
+  .calc-btn.eq { background: var(--green); color: var(--white); }
+  .calc-btn.cancel { grid-column: span 4; background: #9e9e9e; color: var(--white); height: 50px; font-size: 1rem; }
+
+  /* LISTA SPESA */
+  .list-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 4px;
+    border-bottom: 1px solid #f5f5f5;
+    animation: slideIn 0.2s ease;
+  }
+  .list-item:last-child { border-bottom: none; }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .list-item-text {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text);
+    cursor: pointer;
+  }
+  .list-item-text.done {
+    text-decoration: line-through;
+    color: var(--text-light);
+  }
+  .check-circle {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2.5px solid var(--border);
+    background: var(--white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.2s;
+  }
+  .check-circle.checked {
+    background: var(--green);
+    border-color: var(--green);
+  }
+  .check-circle.checked::after {
+    content: '✓';
+    color: white;
+    font-size: 13px;
+    font-weight: 900;
+  }
+  .delete-btn {
+    background: none;
+    border: none;
+    color: #ef5350;
+    font-size: 1.3rem;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 8px;
+    transition: background 0.15s;
+    flex-shrink: 0;
+  }
+  .delete-btn:hover { background: #ffebee; }
+  .empty-list {
+    text-align: center;
+    color: var(--text-light);
+    font-size: 0.95rem;
+    padding: 24px 0;
+    font-weight: 600;
+  }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--slate-dark);
+    color: var(--white);
+    padding: 12px 24px;
+    border-radius: 99px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    opacity: 0;
+    transition: all 0.3s;
+    z-index: 999;
+    white-space: nowrap;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* BUONI BADGE */
+  .buoni-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #e8f5e9;
+    color: var(--green-bg);
+    border-radius: 99px;
+    padding: 4px 14px;
+    font-size: 0.85rem;
+    font-weight: 800;
+    margin-bottom: 4px;
+  }
+
+  /* SETTINGS */
+  .settings-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid #f5f5f5;
+  }
+  .settings-label { font-size: 0.95rem; font-weight: 700; }
+  .settings-sub { font-size: 0.8rem; color: var(--text-light); font-weight: 500; margin-top: 2px; }
+  .settings-input {
+    width: 80px;
+    padding: 8px 10px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 1rem;
+    font-weight: 800;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    text-align: center;
+    outline: none;
+    color: var(--green);
+  }
+  .settings-input:focus { border-color: var(--green); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1 id="header-title">🧾 Spesa Buoni 8€</h1>
+</div>
+
+<nav class="nav">
+  <button class="nav-btn active" onclick="showPage('calcolo')">🧮 Calcolo</button>
+  <button class="nav-btn" onclick="showPage('calcolatrice')">📟 Calcola</button>
+  <button class="nav-btn" onclick="showPage('lista')">📋 Lista</button>
+  <button class="nav-btn" onclick="showPage('impostazioni')">⚙️ Config</button>
+</nav>
+
+<!-- PAGE: CALCOLO BUONI -->
+<div id="page-calcolo" class="page active">
+  <div class="card">
+    <div class="card-title">Calcolo Buoni Pasto</div>
+
+    <input type="number" id="prezzo-input" class="input-field" placeholder="Inserisci prezzo prodotto €"
+      step="0.01" min="0" inputmode="decimal"
+      onkeydown="if(event.key==='Enter') aggiungiProdotto()">
+    <button class="btn btn-green" onclick="aggiungiProdotto()">AGGIUNGI AL TOTALE</button>
+
+    <div class="progress-wrap">
+      <div class="progress-label">
+        <span>Prossimo buono</span>
+        <span id="progress-text">€0.00 / €8.00</span>
+      </div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progress-bar" style="width:0%"></div>
+      </div>
+    </div>
+
+    <div class="summary">
+      <div class="summary-row">
+        <span class="label">Totale Prodotti:</span>
+        <span class="value green" id="totale-prodotti">€0.00</span>
+      </div>
+      <div class="summary-row">
+        <span class="label">Buoni da <span id="val-buono-label">8</span>€:</span>
+        <div>
+          <div class="buoni-badge">🎟️ <span id="num-buoni">0</span></div>
+        </div>
+      </div>
+      <div class="summary-row">
+        <span class="label">Valore buoni usati:</span>
+        <span class="value green" id="valore-buoni">€0.00</span>
+      </div>
+      <div class="summary-row">
+        <span class="label">Resto da pagare:</span>
+        <span class="value red" id="resto-pagare">€0.00</span>
+      </div>
+    </div>
+
+    <button class="btn btn-gray" onclick="azzeraConteggio()">AZZERA CONTEGGIO</button>
+  </div>
+</div>
+
+<!-- PAGE: CALCOLATRICE -->
+<div id="page-calcolatrice" class="page">
+  <div class="card">
+    <div class="card-title">Calcolatrice Rapida</div>
+    <div class="calc-display" id="calc-display">0</div>
+    <div class="calc-grid">
+      <button class="calc-btn num" onclick="calcInput('7')">7</button>
+      <button class="calc-btn num" onclick="calcInput('8')">8</button>
+      <button class="calc-btn num" onclick="calcInput('9')">9</button>
+      <button class="calc-btn op"  onclick="calcInput('÷')">÷</button>
+      <button class="calc-btn num" onclick="calcInput('4')">4</button>
+      <button class="calc-btn num" onclick="calcInput('5')">5</button>
+      <button class="calc-btn num" onclick="calcInput('6')">6</button>
+      <button class="calc-btn op"  onclick="calcInput('×')">×</button>
+      <button class="calc-btn num" onclick="calcInput('1')">1</button>
+      <button class="calc-btn num" onclick="calcInput('2')">2</button>
+      <button class="calc-btn num" onclick="calcInput('3')">3</button>
+      <button class="calc-btn op"  onclick="calcInput('-')">-</button>
+      <button class="calc-btn num" onclick="calcInput('0')">0</button>
+      <button class="calc-btn num" onclick="calcInput('.')">.</button>
+      <button class="calc-btn eq"  onclick="calcEquals()">=</button>
+      <button class="calc-btn op"  onclick="calcInput('+')">+</button>
+      <button class="calc-btn cancel" onclick="calcClear()">C (Cancella)</button>
+    </div>
+    <button class="btn btn-green" onclick="usaRisultatoCalc()" id="btn-usa-risultato" style="display:none">
+      ➕ USA RISULTATO NEL CALCOLO BUONI
+    </button>
+  </div>
+</div>
+
+<!-- PAGE: LISTA SPESA -->
+<div id="page-lista" class="page">
+  <div class="card">
+    <div class="card-title">Lista della Spesa</div>
+    <input type="text" id="lista-input" class="input-field" placeholder="Cosa devi comprare?"
+      onkeydown="if(event.key==='Enter') aggiungiVoce()">
+    <button class="btn btn-green" onclick="aggiungiVoce()">AGGIUNGI ALLA LISTA</button>
+    <div id="lista-items">
+      <div class="empty-list">La lista è vuota 🛒</div>
+    </div>
+    <button class="btn btn-gray" onclick="svuotaLista()" style="margin-top:10px">SVUOTA LISTA</button>
+  </div>
+</div>
+
+<!-- PAGE: IMPOSTAZIONI -->
+<div id="page-impostazioni" class="page">
+  <div class="card">
+    <div class="card-title">⚙️ Configurazione</div>
+
+    <div class="settings-row">
+      <div>
+        <div class="settings-label">Valore buono pasto</div>
+        <div class="settings-sub">Importo in € di ogni buono</div>
+      </div>
+      <input type="number" id="valore-buono-input" class="settings-input"
+        value="8" min="1" step="0.5" oninput="salvaValoreBuono()">
+    </div>
+
+    <div class="settings-row" style="border:none; margin-top:10px">
+      <div>
+        <div class="settings-label">Reset completo</div>
+        <div class="settings-sub">Azzera tutto: conteggio, lista, impostazioni</div>
+      </div>
+      <button class="btn btn-gray" style="width:auto;padding:10px 16px;margin:0;font-size:0.8rem" onclick="resetCompleto()">RESET</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">ℹ️ Info</div>
+    <p style="font-size:0.9rem; color:var(--text-light); font-weight:600; line-height:1.6">
+      Tutti i dati (conteggio, lista della spesa, impostazioni) vengono salvati automaticamente sul dispositivo e rimangono anche se chiudi l'app.
+    </p>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+  // ─── STATE ───────────────────────────────────────────────
+  let state = {
+    totaleProdotti: 0,
+    valoreBuono: 8,
+    listaSpesa: [],
+    calcExpression: '',
+    calcResult: null
+  };
+
+  // ─── LOAD FROM LOCALSTORAGE ───────────────────────────────
+  function caricaStato() {
+    try {
+      const saved = localStorage.getItem('buoniPastoApp');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        state.totaleProdotti = parsed.totaleProdotti || 0;
+        state.valoreBuono = parsed.valoreBuono || 8;
+        state.listaSpesa = parsed.listaSpesa || [];
+      }
+    } catch(e) {}
+    aggiornaUI();
+    aggiornaLista();
+    document.getElementById('valore-buono-input').value = state.valoreBuono;
+  }
+
+  function salvaStato() {
+    try {
+      localStorage.setItem('buoniPastoApp', JSON.stringify({
+        totaleProdotti: state.totaleProdotti,
+        valoreBuono: state.valoreBuono,
+        listaSpesa: state.listaSpesa
+      }));
+    } catch(e) {}
+  }
+
+  // ─── CALCOLO BUONI ────────────────────────────────────────
+  function aggiungiProdotto() {
+    const input = document.getElementById('prezzo-input');
+    const val = parseFloat(input.value.replace(',', '.'));
+    if (isNaN(val) || val <= 0) { showToast('Inserisci un prezzo valido'); return; }
+    state.totaleProdotti = Math.round((state.totaleProdotti + val) * 100) / 100;
+    input.value = '';
+    input.focus();
+    salvaStato();
+    aggiornaUI();
+    showToast(`+€${val.toFixed(2)} aggiunto`);
+  }
+
+  function aggiornaUI() {
+    const vb = state.valoreBuono;
+    const tot = state.totaleProdotti;
+    const numBuoni = Math.floor(tot / vb);
+    const valoreBuoniUsati = numBuoni * vb;
+    const resto = Math.round((tot - valoreBuoniUsati) * 100) / 100;
+    const progressPct = ((tot % vb) / vb) * 100;
+
+    document.getElementById('totale-prodotti').textContent = `€${tot.toFixed(2)}`;
+    document.getElementById('num-buoni').textContent = numBuoni;
+    document.getElementById('valore-buoni').textContent = `€${valoreBuoniUsati.toFixed(2)}`;
+    document.getElementById('resto-pagare').textContent = `€${resto.toFixed(2)}`;
+    document.getElementById('val-buono-label').textContent = vb;
+    document.getElementById('header-title').textContent = `🧾 Spesa Buoni ${vb}€`;
+
+    const progressBar = document.getElementById('progress-bar');
+    progressBar.style.width = progressPct + '%';
+    document.getElementById('progress-text').textContent =
+      `€${(tot % vb).toFixed(2)} / €${vb.toFixed(2)}`;
+  }
+
+  function azzeraConteggio() {
+    state.totaleProdotti = 0;
+    salvaStato();
+    aggiornaUI();
+    showToast('Conteggio azzerato ✓');
+  }
+
+  // ─── CALCOLATRICE ─────────────────────────────────────────
+  let calcExpr = '';
+  let calcLastResult = null;
+  let calcJustEvaled = false;
+
+  function calcInput(val) {
+    const ops = ['+', '-', '×', '÷'];
+    if (calcJustEvaled && !ops.includes(val)) {
+      calcExpr = '';
+      calcJustEvaled = false;
+    }
+    if (calcJustEvaled && ops.includes(val)) {
+      calcJustEvaled = false;
+    }
+    // Prevent double operators
+    if (ops.includes(val) && ops.includes(calcExpr.slice(-1))) {
+      calcExpr = calcExpr.slice(0, -1);
+    }
+    // Prevent double dot in same number
+    if (val === '.') {
+      const parts = calcExpr.split(/[\+\-\×\÷]/);
+      if (parts[parts.length - 1].includes('.')) return;
+    }
+    calcExpr += val;
+    document.getElementById('calc-display').textContent = calcExpr;
+    document.getElementById('btn-usa-risultato').style.display = 'none';
+  }
+
+  function calcEquals() {
+    if (!calcExpr) return;
+    try {
+      const expr = calcExpr.replace(/×/g, '*').replace(/÷/g, '/');
+      const result = Function('"use strict"; return (' + expr + ')')();
+      if (!isFinite(result)) { document.getElementById('calc-display').textContent = 'Errore'; calcExpr = ''; return; }
+      const rounded = Math.round(result * 10000) / 10000;
+      calcLastResult = rounded;
+      document.getElementById('calc-display').textContent = rounded;
+      calcExpr = String(rounded);
+      calcJustEvaled = true;
+      document.getElementById('btn-usa-risultato').style.display = 'block';
+    } catch(e) {
+      document.getElementById('calc-display').textContent = 'Errore';
+      calcExpr = '';
+    }
+  }
+
+  function calcClear() {
+    calcExpr = '';
+    calcLastResult = null;
+    calcJustEvaled = false;
+    document.getElementById('calc-display').textContent = '0';
+    document.getElementById('btn-usa-risultato').style.display = 'none';
+  }
+
+  function usaRisultatoCalc() {
+    if (calcLastResult === null) return;
+    document.getElementById('prezzo-input').value = calcLastResult;
+    showPage('calcolo');
+    showToast(`€${calcLastResult} pronto da aggiungere`);
+  }
+
+  // ─── LISTA SPESA ──────────────────────────────────────────
+  function aggiungiVoce() {
+    const input = document.getElementById('lista-input');
+    const testo = input.value.trim();
+    if (!testo) { showToast('Inserisci cosa comprare'); return; }
+    state.listaSpesa.push({ testo, fatto: false, id: Date.now() });
+    input.value = '';
+    input.focus();
+    salvaStato();
+    aggiornaLista();
+  }
+
+  function toggleVoce(id) {
+    const item = state.listaSpesa.find(i => i.id === id);
+    if (item) { item.fatto = !item.fatto; salvaStato(); aggiornaLista(); }
+  }
+
+  function eliminaVoce(id) {
+    state.listaSpesa = state.listaSpesa.filter(i => i.id !== id);
+    salvaStato();
+    aggiornaLista();
+  }
+
+  function svuotaLista() {
+    if (state.listaSpesa.length === 0) { showToast('Lista già vuota'); return; }
+    state.listaSpesa = [];
+    salvaStato();
+    aggiornaLista();
+    showToast('Lista svuotata ✓');
+  }
+
+  function aggiornaLista() {
+    const container = document.getElementById('lista-items');
+    if (state.listaSpesa.length === 0) {
+      container.innerHTML = '<div class="empty-list">La lista è vuota 🛒</div>';
+      return;
+    }
+    // Sort: non fatti prima
+    const sorted = [...state.listaSpesa].sort((a, b) => a.fatto - b.fatto);
+    container.innerHTML = sorted.map(item => `
+      <div class="list-item" id="item-${item.id}">
+        <div class="list-item-text ${item.fatto ? 'done' : ''}" onclick="toggleVoce(${item.id})">
+          <div class="check-circle ${item.fatto ? 'checked' : ''}"></div>
+          ${escHtml(item.testo)}
+        </div>
+        <button class="delete-btn" onclick="eliminaVoce(${item.id})">✕</button>
+      </div>
+    `).join('');
+  }
+
+  function escHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ─── IMPOSTAZIONI ─────────────────────────────────────────
+  function salvaValoreBuono() {
+    const val = parseFloat(document.getElementById('valore-buono-input').value);
+    if (!isNaN(val) && val > 0) {
+      state.valoreBuono = val;
+      salvaStato();
+      aggiornaUI();
+    }
+  }
+
+  function resetCompleto() {
+    if (!confirm('Sei sicuro? Verranno cancellati conteggio, lista e impostazioni.')) return;
+    localStorage.removeItem('buoniPastoApp');
+    state = { totaleProdotti: 0, valoreBuono: 8, listaSpesa: [] };
+    document.getElementById('valore-buono-input').value = 8;
+    aggiornaUI();
+    aggiornaLista();
+    showToast('Reset completato ✓');
+  }
+
+  // ─── NAV ──────────────────────────────────────────────────
+  function showPage(id) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('page-' + id).classList.add('active');
+    const idx = { calcolo: 0, calcolatrice: 1, lista: 2, impostazioni: 3 }[id];
+    document.querySelectorAll('.nav-btn')[idx].classList.add('active');
+    window.scrollTo(0, 0);
+  }
+
+  // ─── TOAST ────────────────────────────────────────────────
+  let toastTimer;
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+  }
+
+  // ─── INIT ─────────────────────────────────────────────────
+  caricaStato();
+</script>
+</body>
+</html>
